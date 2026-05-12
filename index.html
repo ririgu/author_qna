@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작가님, 질문 있어요! 👻</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(135deg, #2b1055 0%, #7597de 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.96);
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 750px;
+            text-align: center;
+            position: relative;
+        }
+
+        .main-title {
+            color: #2b1055;
+            font-size: 45px;
+            margin: 0 0 30px 0;
+            text-shadow: 2px 2px 0px rgba(117, 151, 222, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px; 
+            margin: 0 auto 40px auto;
+            background: #f8faff;
+            padding: 25px 40px;
+            border-radius: 20px;
+            border: 2px dashed #7597de;
+            width: fit-content;
+        }
+
+        .book-img {
+            width: 180px; 
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.2);
+            transform: rotate(-3deg);
+            flex-shrink: 0; 
+        }
+
+        .info-text {
+            text-align: left;
+            font-size: 28px;
+            color: #4b1d52;
+            line-height: 1.4;
+            margin: 0;
+            word-break: keep-all;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 18px;
+            color: #2b1055;
+            padding-left: 5px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            font-family: 'Jua', sans-serif;
+            font-size: 18px;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #7597de;
+            background-color: #f0f4ff;
+        }
+
+        textarea {
+            height: 140px;
+            resize: none;
+        }
+
+        .privacy-notice {
+            font-size: 14px;
+            color: #ff5e62;
+            margin: 20px 0 10px 0;
+            word-break: keep-all;
+        }
+
+        .submit-btn {
+            background: linear-gradient(to right, #2b1055, #7597de);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 24px;
+            font-family: 'Jua', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 10px 20px rgba(43, 16, 85, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(43, 16, 85, 0.5);
+        }
+
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #2b1055;
+            color: #fff;
+            text-align: center;
+            border-radius: 50px;
+            padding: 20px;
+            position: fixed;
+            z-index: 100;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        @media (max-width: 650px) {
+            .header-content { flex-direction: column; text-align: center; width: auto; padding: 20px; }
+            .info-text { text-align: center; font-size: 22px; }
+            .input-row { grid-template-columns: repeat(2, 1fr); }
+            .main-title { font-size: 32px; }
+            .book-img { width: 140px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="main-title">작가님, 질문 있어요! 🚌</h1>
+
+        <div class="header-content">
+            <img src="수상한 휴게소_책_이미지.jpg" alt="수상한 휴게소 책 표지" class="book-img">
+            <p class="info-text">
+                &lt;수상한 휴게소&gt; 박현숙 작가님께 궁금했던 점을 자유롭게 남겨주세요.
+            </p>
+        </div>
+
+        <form id="questionForm">
+            <div class="input-row">
+                <div class="form-group"> <label>학년</label> <input type="number" id="grade" min="1" max="6" placeholder="학년" required> </div>
+                <div class="form-group"> <label>반</label> <input type="number" id="classNum" min="1" max="20" placeholder="반" required> </div>
+                <div class="form-group"> <label>번호</label> <input type="number" id="studentNum" min="1" max="40" placeholder="번호" required> </div>
+                <div class="form-group"> <label>이름</label> <input type="text" id="name" placeholder="이름" required> </div>
+            </div>
+
+            <div class="form-group">
+                <label>작가님께 궁금한 점 💭</label>
+                <textarea id="question" placeholder="책 내용이나 작가님에 대해 궁금한 점을 적어주세요!" required></textarea>
+            </div>
+
+            <p class="privacy-notice">
+                ⚠️ 수집된 정보는 작가와의 만남 행사용으로만 활용되며 행사 종료 후 삭제됩니다.
+            </p>
+
+            <button type="submit" id="submitBtn" class="submit-btn">질문 저장소로 슝! 🚀</button>
+        </form>
+    </div>
+
+    <div id="toast">질문이 무사히 전달되었습니다! 🎁</div>
+
+    <script>
+        // 선생님의 구글 앱스 스크립트 웹 앱 URL이 오류 없이 입력되었습니다.
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbywkMzmDOEayeyAM8FAFYnuRW69Jy5_QxPgzgrzfcsTl_BOpxX3keUa2ow-d2d2p5uL9w/exec"; 
+
+        document.getElementById('questionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "전송 중... 슝슝! 🚀";
+
+            const questionData = {
+                grade: document.getElementById('grade').value,
+                classNum: document.getElementById('classNum').value,
+                studentNum: document.getElementById('studentNum').value,
+                name: document.getElementById('name').value,
+                question: document.getElementById('question').value,
+                category: '0',
+                date: new Date().toLocaleString()
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(questionData)
+            })
+            .then(response => {
+                const toast = document.getElementById("toast");
+                toast.className = "show";
+                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+                document.getElementById('questionForm').reset();
+                btn.disabled = false;
+                btn.innerText = "질문 저장소로 슝! 🚀";
+                document.getElementById('grade').focus();
+            })
+            .catch(error => {
+                alert("전송 중 오류가 발생했습니다. 구글 시트가 잘 연결되었는지 확인해 주세요.");
+                btn.disabled = false;
+                btn.innerText = "질문 저장소로 슝! 🚀";
+            });
+        });
+    </script>
+</body>
+</html>
