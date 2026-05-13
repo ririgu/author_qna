@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수상한 휴게소 질문 뽑기판 👻</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(135deg, #1a0b2e 0%, #4b2a75 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .header { width: 95%; display: flex; justify-content: space-between; align-items: center; height: 8vh; margin-top: 1vh; }
+        h1 { margin: 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); color: #ffd700; }
+        .controls button { font-family: 'Jua', sans-serif; font-size: 16px; padding: 10px 20px; margin-left: 10px; border: none; border-radius: 20px; cursor: pointer; background-color: rgba(255, 255, 255, 0.2); color: white; transition: background 0.3s; }
+        .controls button:hover { background-color: rgba(255, 255, 255, 0.4); }
+
+        .board-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            gap: 4px;
+            width: 95vw;
+            height: 88vh;
+            margin-bottom: 2vh;
+            max-width: 1800px;
+        }
+
+        .card { background-color: transparent; perspective: 1000px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card.viewed { opacity: 0.6; }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            padding: 4px;
+        }
+
+        .card-front { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); font-size: clamp(1.2rem, 2vw, 2.5rem); }
+        .card-back { background-color: #fff; color: #333; transform: rotateY(180deg); flex-direction: column; border: 3px solid #ff9a9e; overflow: hidden; }
+
+        .student-info { font-size: clamp(0.7rem, 0.9vw, 1.1rem); color: #888; margin-bottom: 5px; font-weight: bold; }
+        .question-text { font-size: clamp(0.8rem, 1vw, 1.4rem); word-break: keep-all; line-height: 1.3; color: #4b1d52; }
+        .cheer-text { font-size: clamp(0.9rem, 1.2vw, 1.5rem); color: #ff5e62; }
+        
+        #loadingMsg { font-size: 24px; color: white; margin-top: 20vh; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚌 수상한 휴게소 질문 뽑기판 👻</h1>
+        <div class="controls">
+            <button onclick="fetchAndRenderBoard()">🔄 최신 질문 불러오기</button>
+            <button id="fullscreenBtn" onclick="toggleFullScreen()">📺 전체 화면 모드</button>
+        </div>
+    </div>
+
+    <div id="loadingMsg">구글 시트에서 아이들의 질문을 불러오고 있습니다... 🚀</div>
+    <div class="board-container" id="board" style="display: none;"></div>
+
+    <script>
+        // 선생님의 구글 앱스 스크립트 웹 앱 URL입니다.
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgK4l7nKpAveZpsXz2I_v5QjBZsYcxYDBJAzoBnDOP5qWsQYJ-enIZTOl9XJQGCb8FBw/exec";
+
+        const icons = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐣','🦉','🐢','🦕','🐳','🐬','🌺','🌻','🍄','🍀','🍎','🍓','🍦','🍩','🎈','🎁','💛','💚','💙','💜','👻','🌙','🚌'];
+        const cheers = ['작가님 사랑해요! 💕', '다음 책도 기대할게요! ✨', '수상한 휴게소 최고! 👍', '오늘 만나서 반가워요! 🥰', '항상 건강하세요! 💪', '작가님 팬이에요! 🤩', '재미있는 이야기 감사합니다! 🎁', '작가님 최고 멋져요! 🌟'];
+
+        let cardsData = [];
+
+        // 1. 구글 시트에서 데이터 불러오기
+        async function fetchAndRenderBoard() {
+            document.getElementById('loadingMsg').style.display = 'block';
+            document.getElementById('board').style.display = 'none';
+            document.getElementById('board').innerHTML = '';
+
+            try {
+                const response = await fetch(WEB_APP_URL);
+                let fetchedQuestions = await response.json();
+                
+                cardsData = [...fetchedQuestions];
+
+                // 질문이 144개가 안 되면 남은 칸은 응원 문구로 채우기
+                const remainingSpots = 144 - cardsData.length;
+                for (let i = 0; i < remainingSpots; i++) {
+                    cardsData.push({ type: 'cheer', text: cheers[Math.floor(Math.random() * cheers.length)] });
+                }
+
+                // 데이터 무작위로 섞기 (피셔-예이츠 셔플)
+                for (let i = cardsData.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cardsData[i], cardsData[j]] = [cardsData[j], cardsData[i]];
+                }
+
+                document.getElementById('loadingMsg').style.display = 'none';
+                document.getElementById('board').style.display = 'grid';
+                renderBoard();
+
+            } catch (error) {
+                document.getElementById('loadingMsg').innerText = "데이터를 불러오는 중 오류가 발생했습니다. 새로고침 해주세요!";
+                console.error(error);
+            }
+        }
+
+        // 2. 144칸 보드 그리기
+        function renderBoard() {
+            const board = document.getElementById('board');
+            
+            cardsData.forEach((data, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+
+                const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+
+                let backContent = '';
+                if (data.type === 'cheer') {
+                    backContent = `<div class="cheer-text">${data.text}</div>`;
+                } else {
+                    // 사서 선생님이 분류한 유형에 따라 배지 색상 지정
+                    const catColors = { '1': '#4caf50', '2': '#ff9800', '3': '#2196f3' };
+                    const catNames = { '1': '책 내용', '2': '창작과정', '3': '작가님' };
+                    const badge = (data.category && data.category !== '0') 
+                                  ? `<span style="background:${catColors[data.category]}; color:white; padding:3px 8px; border-radius:12px; font-size:12px; margin-right:5px;">${catNames[data.category]}</span>` 
+                                  : '';
+
+                    backContent = `
+                        <div class="student-info">${badge}${data.grade}학년 ${data.classNum}반 ${data.studentNum}번 ${data.name}</div>
+                        <div class="question-text">${data.question}</div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">${randomIcon}</div>
+                        <div class="card-back">${backContent}</div>
+                    </div>
+                `;
+
+                card.addEventListener('click', function() {
+                    if (!this.classList.contains('flipped')) {
+                        flipCard(this, data.type !== 'cheer');
+                    }
+                });
+
+                board.appendChild(card);
+            });
+        }
+
+        // 3. 카드 뒤집기 및 효과음, 폭죽
+        function playPopSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch(e) { console.log("오디오 지원 안됨"); }
+        }
+
+        function flipCard(cardElement, isQuestion) {
+            playPopSound();
+            cardElement.classList.add('flipped');
+
+            setTimeout(() => {
+                if(isQuestion) {
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, colors: ['#ff9966', '#ff5e62', '#ffd700', '#7597de'] });
+                }
+            }, 300);
+
+            setTimeout(() => { cardElement.classList.add('viewed'); }, 2000);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } 
+            else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+        }
+
+        // 페이지 로드 시 바로 데이터 불러오기 실행
+        window.onload = () => { fetchAndRenderBoard(); };
+    </script>
+</body>
+</html>
