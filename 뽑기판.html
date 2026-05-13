@@ -10,58 +10,73 @@
         body {
             font-family: 'Jua', sans-serif;
             background: linear-gradient(135deg, #1a0b2e 0%, #4b2a75 100%);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            color: white;
+            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
+            height: 100vh; overflow: hidden; color: white;
         }
 
-        .header { width: 95%; display: flex; justify-content: space-between; align-items: center; height: 8vh; margin-top: 1vh; }
+        .header { width: 95%; display: flex; justify-content: space-between; align-items: center; height: 8vh; margin-top: 1vh; z-index: 10; }
         h1 { margin: 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); color: #ffd700; }
         .controls button { font-family: 'Jua', sans-serif; font-size: 16px; padding: 10px 20px; margin-left: 10px; border: none; border-radius: 20px; cursor: pointer; background-color: rgba(255, 255, 255, 0.2); color: white; transition: background 0.3s; }
         .controls button:hover { background-color: rgba(255, 255, 255, 0.4); }
 
+        /* 12x12 그리드 보드 */
         .board-container {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            grid-template-rows: repeat(12, 1fr);
-            gap: 4px;
-            width: 95vw;
-            height: 88vh;
-            margin-bottom: 2vh;
-            max-width: 1800px;
+            display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr);
+            gap: 4px; width: 95vw; height: 88vh; margin-bottom: 2vh; max-width: 1800px; z-index: 1;
         }
 
-        .card { background-color: transparent; perspective: 1000px; cursor: pointer; }
-        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
-        .card.flipped .card-inner { transform: rotateY(180deg); }
-        .card.viewed { opacity: 0.6; }
+        /* 카드 기본 스타일 */
+        .card { background-color: transparent; perspective: 1000px; cursor: pointer; position: relative; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        
+        /* 💡 이미 확인한 카드 표시 */
+        .card.viewed { opacity: 0.5; }
 
         .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            box-sizing: border-box;
-            padding: 4px;
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); box-sizing: border-box;
         }
 
-        .card-front { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); font-size: clamp(1.2rem, 2vw, 2.5rem); }
-        .card-back { background-color: #fff; color: #333; transform: rotateY(180deg); flex-direction: column; border: 3px solid #ff9a9e; overflow: hidden; }
+        /* 카드 앞면 (힌트 추가) */
+        .card-front {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            font-size: clamp(1rem, 2vw, 2rem);
+        }
+        
+        /* ★ 카드 앞면 하단 유형 힌트 배지 */
+        .hint-badge {
+            position: absolute; bottom: 2px; right: 2px; font-size: clamp(0.5rem, 1vw, 0.9rem);
+            padding: 1px 3px; border-radius: 5px; color: white; font-weight: bold;
+        }
 
-        .student-info { font-size: clamp(0.7rem, 0.9vw, 1.1rem); color: #888; margin-bottom: 5px; font-weight: bold; }
-        .question-text { font-size: clamp(0.8rem, 1vw, 1.4rem); word-break: keep-all; line-height: 1.3; color: #4b1d52; }
-        .cheer-text { font-size: clamp(0.9rem, 1.2vw, 1.5rem); color: #ff5e62; }
+        /* 💡 카드 중앙 확대 및 뒤집기 스타일 (CSS 전용) */
+        .card.focused { z-index: 1000; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; cursor: default; }
+        .card.focused .card-inner {
+            transform: rotateY(180deg) scale(3.5); /* 3.5배 확대 및 뒤집기 */
+            position: absolute; top: 38%; left: 45%; width: 10vw; height: 13vh; /* 중앙 배치 */
+            cursor: pointer; /* 클릭하면 닫히게 */
+        }
+
+        /* 확대된 카드 뒷면 내용 (스크롤 적용) */
+        .card-back {
+            background-color: #fff; color: #333; transform: rotateY(180deg);
+            flex-direction: column; border: 3px solid #ff9a9e;
+            /* ★ 질문 전체 노출을 위한 스크롤 지원 */
+            overflow-y: auto; overflow-x: hidden; justify-content: flex-start; padding: 15px;
+        }
+        
+        /* 스크롤바 디자인 (귀엽게) */
+        .card-back::-webkit-scrollbar { width: 6px; }
+        .card-back::-webkit-scrollbar-thumb { background: #ff9a9e; border-radius: 3px; }
+
+        .student-info { font-size: clamp(0.7rem, 0.9vw, 1.1rem); color: #888; margin-bottom: 5px; font-weight: bold; width: 100%; text-align: center; }
+        .category-name { padding: 3px 8px; border-radius: 12px; color: white; font-size: 11px; margin-right: 5px; }
+        .question-text {
+            font-size: clamp(0.8rem, 1.1vw, 1.3rem); word-break: keep-all; line-height: 1.3; color: #4b1d52;
+            text-align: left; margin-top: 10px; width: 100%;
+        }
+        .cheer-text { font-size: clamp(1rem, 1.2vw, 1.6rem); color: #ff5e62; align-self: center; margin-top: auto; margin-bottom: auto; }
         
         #loadingMsg { font-size: 24px; color: white; margin-top: 20vh; }
     </style>
@@ -103,7 +118,7 @@
                 // 질문이 144개가 안 되면 남은 칸은 응원 문구로 채우기
                 const remainingSpots = 144 - cardsData.length;
                 for (let i = 0; i < remainingSpots; i++) {
-                    cardsData.push({ type: 'cheer', text: cheers[Math.floor(Math.random() * cheers.length)] });
+                    cardsData.push({ type: 'cheer', text: cheers[Math.floor(Math.random() * cheers.length)], category: 'cheer' });
                 }
 
                 // 데이터 무작위로 섞기 (피셔-예이츠 셔플)
@@ -122,6 +137,15 @@
             }
         }
 
+        // 유형별 설정 (색상 및 이름)
+        const categoryMap = {
+            '1': { name: '책 내용', color: '#4caf50', emoji: '📚' },
+            '2': { name: '창작과정', color: '#ff9800', emoji: '💡' },
+            '3': { name: '작가님', color: '#2196f3', emoji: '🤔' },
+            'cheer': { emoji: '🧡' },
+            '0': { emoji: '❓' } // 분류 대기
+        };
+
         // 2. 144칸 보드 그리기
         function renderBoard() {
             const board = document.getElementById('board');
@@ -132,16 +156,23 @@
                 card.dataset.index = index;
 
                 const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                
+                // ★ 카드 앞면 유형 힌트 배지 생성
+                let frontHint = '';
+                const cat = categoryMap[data.category];
+                if (cat && data.category !== '0' && data.category !== 'cheer') {
+                    frontHint = `<span class="hint-badge" style="background:${cat.color};">${cat.emoji}</span>`;
+                } else if (data.category === 'cheer') {
+                    frontHint = `<span class="hint-badge">${cat.emoji}</span>`; // 응원문구 힌트
+                }
 
                 let backContent = '';
                 if (data.type === 'cheer') {
                     backContent = `<div class="cheer-text">${data.text}</div>`;
                 } else {
-                    // 사서 선생님이 분류한 유형에 따라 배지 색상 지정
-                    const catColors = { '1': '#4caf50', '2': '#ff9800', '3': '#2196f3' };
-                    const catNames = { '1': '책 내용', '2': '창작과정', '3': '작가님' };
-                    const badge = (data.category && data.category !== '0') 
-                                  ? `<span style="background:${catColors[data.category]}; color:white; padding:3px 8px; border-radius:12px; font-size:12px; margin-right:5px;">${catNames[data.category]}</span>` 
+                    // 뒷면 배지 및 학생 정보
+                    const badge = (cat && data.category !== '0') 
+                                  ? `<span class="category-name" style="background:${cat.color};">${cat.name}</span>` 
                                   : '';
 
                     backContent = `
@@ -152,48 +183,59 @@
 
                 card.innerHTML = `
                     <div class="card-inner">
-                        <div class="card-front">${randomIcon}</div>
+                        <div class="card-front">${randomIcon}${frontHint}</div>
                         <div class="card-back">${backContent}</div>
                     </div>
                 `;
 
-                card.addEventListener('click', function() {
-                    if (!this.classList.contains('flipped')) {
-                        flipCard(this, data.type !== 'cheer');
-                    }
+                // 💡 클릭 시 중앙 확대 이벤트 등록
+                card.addEventListener('click', function(e) {
+                    toggleCardFocus(this, data.type !== 'cheer');
                 });
 
                 board.appendChild(card);
             });
         }
 
-        // 3. 카드 뒤집기 및 효과음, 폭죽
+        // 💡 카드 중앙 확대/축소 로직
+        let focusedCard = null;
+
+        function toggleCardFocus(cardElement, isQuestion) {
+            // 이미 다른 카드가 확대되어 있다면 무시
+            if (focusedCard && focusedCard !== cardElement) return;
+
+            if (!cardElement.classList.contains('focused')) {
+                // [확대]
+                playPopSound();
+                cardElement.classList.add('focused');
+                focusedCard = cardElement;
+                
+                // 질문이면 폭죽 터뜨리기 (약간의 시간차)
+                setTimeout(() => {
+                    if(isQuestion) {
+                        confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 }, colors: ['#ff9966', '#ff5e62', '#ffd700', '#7597de'] });
+                    }
+                }, 400);
+
+            } else {
+                // [축소] - 확대된 카드를 다시 클릭하면 원래대로
+                cardElement.classList.remove('focused');
+                cardElement.classList.add('viewed'); // 확인한 카드로 표시
+                focusedCard = null;
+            }
+        }
+
         function playPopSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
                 oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
                 oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
                 oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.1);
             } catch(e) { console.log("오디오 지원 안됨"); }
-        }
-
-        function flipCard(cardElement, isQuestion) {
-            playPopSound();
-            cardElement.classList.add('flipped');
-
-            setTimeout(() => {
-                if(isQuestion) {
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, colors: ['#ff9966', '#ff5e62', '#ffd700', '#7597de'] });
-                }
-            }, 300);
-
-            setTimeout(() => { cardElement.classList.add('viewed'); }, 2000);
         }
 
         function toggleFullScreen() {
@@ -201,7 +243,6 @@
             else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
 
-        // 페이지 로드 시 바로 데이터 불러오기 실행
         window.onload = () => { fetchAndRenderBoard(); };
     </script>
 </body>
